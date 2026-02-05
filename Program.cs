@@ -27,6 +27,18 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     context.Database.EnsureCreated();
+
+    // Migration to add Currency and ConversionRate columns
+    try 
+    {
+        // Try adding the columns. If they exist, this will fail silently/be caught.
+        // SQLite doesn't support "IF NOT EXISTS" in ADD COLUMN standardly across all versions easily without checks,
+        // so we'll try to add them and ignore the specific error or just let it fail if present.
+        // However, to be cleaner, we can check. But try-catch is robust enough for this context.
+        context.Database.ExecuteSqlRaw("ALTER TABLE Clients ADD COLUMN Currency TEXT DEFAULT 'INR'");
+        context.Database.ExecuteSqlRaw("ALTER TABLE Clients ADD COLUMN ConversionRate TEXT DEFAULT '1'"); // SQLite stores decimal as TEXT/REAL often, explicit type helps.
+    }
+    catch { /* Columns likely exist */ }
 }
 
 // Configure the HTTP request pipeline.

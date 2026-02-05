@@ -78,8 +78,8 @@
     <div class="col-lg-4">
         <div class="stat-card primary">
             <i class="bi bi-currency-dollar stat-icon"></i>
-            <div class="stat-value">$@Model.GrandTotalIncome.ToString("N2")</div>
-            <div class="stat-label">Total Income</div>
+            <div class="stat-value">₹@Model.GrandTotalIncome.ToString("N2")</div>
+            <div class="stat-label">Total Income (INR)</div>
         </div>
     </div>
     <div class="col-lg-4">
@@ -141,7 +141,7 @@
                     @foreach (var report in Model.ClientReports)
                     {
                         var percentage = Model.GrandTotalIncome > 0 
-                            ? (report.TotalIncome / Model.GrandTotalIncome * 100) 
+                            ? (report.TotalIncomeInInr / Model.GrandTotalIncome * 100) 
                             : 0;
                         <tr>
                             <td>
@@ -162,12 +162,12 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-end rate">$@report.HourlyRate.ToString("N2")/hr</td>
+                            <td class="text-end rate">@(report.Currency == "USD" ? "$" : "₹")@report.HourlyRate.ToString("N2")/hr</td>
                             <td class="text-center">
                                 <span class="badge badge-primary">@report.TaskCount</span>
                             </td>
                             <td class="text-end hours">@report.TotalHours.ToString("N1")h</td>
-                            <td class="text-end money large">$@report.TotalIncome.ToString("N2")</td>
+                            <td class="text-end money large">@(report.Currency == "USD" ? "$" : "₹")@report.TotalIncome.ToString("N2")</td>
                             <td class="text-center">
                                 <a asp-action="ClientDetails" asp-route-id="@report.ClientId" 
                                    asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
@@ -187,7 +187,7 @@
                             <span class="badge badge-primary">@Model.ClientReports.Sum(r => r.TaskCount)</span>
                         </td>
                         <td class="text-end hours">@Model.GrandTotalHours.ToString("N1")h</td>
-                        <td class="text-end money large">$@Model.GrandTotalIncome.ToString("N2")</td>
+                        <td class="text-end money large">₹@Model.GrandTotalIncome.ToString("N2")</td>
                         <td></td>
                     </tr>
                 </tfoot>

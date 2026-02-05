@@ -55,7 +55,7 @@ namespace BillingSoftware.Controllers
         // POST: Clients/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,HourlyRate,Description,Email,Phone,IsActive")] Client client)
+        public async Task<IActionResult> Create([Bind("Name,HourlyRate,Currency,ConversionRate,Description,Email,Phone,IsActive")] Client client)
         {
             if (ModelState.IsValid)
             {
@@ -87,7 +87,7 @@ namespace BillingSoftware.Controllers
         // POST: Clients/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HourlyRate,Description,Email,Phone,IsActive,CreatedAt")] Client client)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HourlyRate,Currency,ConversionRate,Description,Email,Phone,IsActive,CreatedAt")] Client client)
         {
             if (id != client.Id)
             {

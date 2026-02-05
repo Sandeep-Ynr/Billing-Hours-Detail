@@ -34,7 +34,7 @@
                         <div class="text-muted small">Hours</div>
                     </div>
                     <div class="col-6">
-                        <div class="money" style="font-size: 1.5rem;">$@amount.ToString("N2")</div>
+                        <div class="money" style="font-size: 1.5rem;">@(Model.Client?.Currency == "USD" ? "$" : "₹")@amount.ToString("N2")</div>
                         <div class="text-muted small">Amount</div>
                     </div>
                 </div>

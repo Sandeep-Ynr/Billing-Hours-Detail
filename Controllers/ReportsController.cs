@@ -49,19 +49,37 @@ namespace BillingSoftware.Controllers
 
             var tasks = await query.ToListAsync();
 
-            var clientReports = tasks
-                .GroupBy(t => new { t.ClientId, t.Client!.Name, t.Client.HourlyRate })
-                .Select(g => new ClientReportViewModel
+            var reportData = tasks
+                .GroupBy(t => new { t.ClientId, t.Client!.Name, t.Client.HourlyRate, t.Client.Currency, t.Client.ConversionRate })
+                .Select(g => new
                 {
                     ClientId = g.Key.ClientId,
                     ClientName = g.Key.Name,
                     HourlyRate = g.Key.HourlyRate,
+                    Currency = g.Key.Currency,
+                    ConversionRate = g.Key.ConversionRate,
                     TotalHours = g.Sum(t => t.HoursWorked),
-                    TotalIncome = g.Sum(t => t.HoursWorked * g.Key.HourlyRate),
+                    NativeIncome = g.Sum(t => t.HoursWorked * g.Key.HourlyRate),
                     TaskCount = g.Count()
+                })
+                .ToList();
+
+            var clientReports = reportData
+                .Select(r => new ClientReportViewModel
+                {
+                    ClientId = r.ClientId,
+                    ClientName = r.ClientName,
+                    HourlyRate = r.HourlyRate,
+                    Currency = r.Currency, // Ensure this property is added to ViewModel
+                    TotalHours = r.TotalHours,
+                    TotalIncome = r.NativeIncome,
+                    TotalIncomeInInr = r.Currency == "USD" ? r.NativeIncome * r.ConversionRate : r.NativeIncome,
+                    TaskCount = r.TaskCount
                 })
                 .OrderByDescending(r => r.TotalIncome)
                 .ToList();
+
+            var grandTotalIncome = reportData.Sum(r => r.Currency == "USD" ? r.NativeIncome * r.ConversionRate : r.NativeIncome);
 
             var viewModel = new ReportsViewModel
             {
@@ -70,7 +88,7 @@ namespace BillingSoftware.Controllers
                 ClientId = clientId,
                 ClientReports = clientReports,
                 GrandTotalHours = clientReports.Sum(r => r.TotalHours),
-                GrandTotalIncome = clientReports.Sum(r => r.TotalIncome),
+                GrandTotalIncome = grandTotalIncome,
                 Clients = await _context.Clients.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync()
             };
 

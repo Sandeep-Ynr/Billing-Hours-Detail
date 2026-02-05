@@ -59,8 +59,12 @@
                 
                 <div class="mb-4 text-center">
                     <div class="client-rate">
-                        $@Model.HourlyRate.ToString("N2") <span>/hour</span>
+                        @(Model.Currency == "USD" ? "$" : "₹")@Model.HourlyRate.ToString("N2") <span>/hour</span>
                     </div>
+                     @if (Model.Currency == "USD")
+                    {
+                        <div class="mt-1 small text-muted">Ex. Rate: 1 USD = ₹@Model.ConversionRate.ToString("N2")</div>
+                    }
                 </div>
                 
                 @if (!string.IsNullOrEmpty(Model.Description))
@@ -104,7 +108,7 @@
         <div class="row g-3 mb-4">
             <div class="col-md-4">
                 <div class="stat-card primary" style="min-height: 100px;">
-                    <div class="stat-value">$@totalIncome.ToString("N2")</div>
+                    <div class="stat-value">@(Model.Currency == "USD" ? "$" : "₹")@totalIncome.ToString("N2")</div>
                     <div class="stat-label">Total Income</div>
                 </div>
             </div>
@@ -164,7 +168,7 @@
                                             }
                                         </td>
                                         <td class="text-end hours">@task.HoursWorked.ToString("N1")h</td>
-                                        <td class="text-end money">$@((task.HoursWorked * Model.HourlyRate).ToString("N2"))</td>
+                                        <td class="text-end money">@(Model.Currency == "USD" ? "$" : "₹")@((task.HoursWorked * Model.HourlyRate).ToString("N2"))</td>
                                     </tr>
                                 }
                             </tbody>
@@ -172,7 +176,7 @@
                                 <tr class="table-light fw-bold">
                                     <td colspan="3" class="text-end">Total:</td>
                                     <td class="text-end hours">@totalHours.ToString("N1")h</td>
-                                    <td class="text-end money">$@totalIncome.ToString("N2")</td>
+                                    <td class="text-end money">@(Model.Currency == "USD" ? "$" : "₹")@totalIncome.ToString("N2")</td>
                                 </tr>
                             </tfoot>
                         </table>
