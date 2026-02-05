@@ -57,12 +57,27 @@ namespace BillingSoftware.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,HourlyRate,Currency,ConversionRate,Description,Email,Phone,IsActive")] Client client)
         {
+            // If INR is selected, the ConversionRate input is hidden and might be submitted as empty/invalid.
+            // Since conversion rate is not applicable for INR (it's 1:1), we force it to 1 and clear validation.
+            if (client.Currency == "INR")
+            {
+                client.ConversionRate = 1;
+                ModelState.Remove("ConversionRate");
+            }
+
             if (ModelState.IsValid)
             {
                 client.CreatedAt = DateTime.Now;
                 _context.Add(client);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Client '{client.Name}' created successfully!";
+                
+                // If INR is selected, user wants to stay on the page to add more (focus returns to Client Name)
+                if (client.Currency == "INR")
+                {
+                    return RedirectToAction(nameof(Create));
+                }
+                
                 return RedirectToAction(nameof(Index));
             }
             return View(client);
