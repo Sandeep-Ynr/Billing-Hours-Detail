@@ -1,0 +1,164 @@
+@{
+    ViewData["Title"] = "Monthly Breakdown";
+    var year = ViewBag.Year as int? ?? DateTime.Now.Year;
+    var availableYears = ViewBag.AvailableYears as List<int> ?? new List<int>();
+    var monthlyData = Model as dynamic;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-calendar3"></i> Monthly Breakdown
+        </h1>
+        <p class="page-subtitle">Income breakdown by month for @year</p>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <form method="get" class="d-flex gap-2">
+            <select name="year" class="form-select" onchange="this.form.submit()">
+                @if (!availableYears.Any())
+                {
+                    <option value="@DateTime.Now.Year">@DateTime.Now.Year</option>
+                }
+                @foreach (var y in availableYears)
+                {
+                    <option value="@y" selected="@(y == year)">@y</option>
+                }
+            </select>
+        </form>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+
+@{
+    var dataList = monthlyData != null ? ((IEnumerable<dynamic>)monthlyData).ToList() : new List<dynamic>();
+    var totalHours = dataList.Any() ? dataList.Sum(m => (decimal)m.TotalHours) : 0m;
+    var totalIncome = dataList.Any() ? dataList.Sum(m => (decimal)m.TotalIncome) : 0m;
+    var totalTasks = dataList.Any() ? dataList.Sum(m => (int)m.TaskCount) : 0;
+}
+
+@if (dataList.Any())
+{
+    <!-- Year Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="stat-card primary">
+                <i class="bi bi-currency-dollar stat-icon"></i>
+                <div class="stat-value">$@totalIncome.ToString("N2")</div>
+                <div class="stat-label">Total Income (@year)</div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="stat-card success">
+                <i class="bi bi-clock-history stat-icon"></i>
+                <div class="stat-value">@totalHours.ToString("N1")h</div>
+                <div class="stat-label">Total Hours</div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="stat-card purple">
+                <i class="bi bi-list-check stat-icon"></i>
+                <div class="stat-value">@totalTasks</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Breakdown Cards -->
+    <div class="row g-4">
+        @foreach (var month in dataList)
+        {
+            var monthPercentage = totalIncome > 0 ? ((decimal)month.TotalIncome / totalIncome * 100) : 0;
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">@month.MonthName</span>
+                        <span class="badge badge-primary">@month.TaskCount tasks</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-6 text-center">
+                                <div class="hours" style="font-size: 1.5rem;">@((decimal)month.TotalHours).ToString("N1")h</div>
+                                <div class="text-muted small">Hours</div>
+                            </div>
+                            <div class="col-6 text-center">
+                                <div class="money" style="font-size: 1.5rem;">$@((decimal)month.TotalIncome).ToString("N2")</div>
+                                <div class="text-muted small">Income</div>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" style="width: @monthPercentage%"></div>
+                        </div>
+                        <div class="text-center text-muted small mt-2">
+                            @monthPercentage.ToString("N1")% of yearly income
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Monthly Table -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="bi bi-table me-2"></i> Monthly Summary Table
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th class="text-center">Tasks</th>
+                            <th class="text-end">Hours</th>
+                            <th class="text-end">Income</th>
+                            <th class="text-end">% of Year</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var month in dataList)
+                        {
+                            var monthPercentage = totalIncome > 0 ? ((decimal)month.TotalIncome / totalIncome * 100) : 0;
+                            <tr>
+                                <td class="fw-semibold">@month.MonthName</td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary">@month.TaskCount</span>
+                                </td>
+                                <td class="text-end hours">@((decimal)month.TotalHours).ToString("N1")h</td>
+                                <td class="text-end money">$@((decimal)month.TotalIncome).ToString("N2")</td>
+                                <td class="text-end">@monthPercentage.ToString("N1")%</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light fw-bold">
+                            <td>Total</td>
+                            <td class="text-center">
+                                <span class="badge badge-primary">@totalTasks</span>
+                            </td>
+                            <td class="text-end hours">@totalHours.ToString("N1")h</td>
+                            <td class="text-end money">$@totalIncome.ToString("N2")</td>
+                            <td class="text-end">100%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-calendar-x"></i>
+                <h3>No data for @year</h3>
+                <p class="text-muted mb-3">No tasks found for this year. Start tracking your work to see monthly reports.</p>
+                <a asp-controller="Tasks" asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Add Task
+                </a>
+            </div>
+        </div>
+    </div>
+}

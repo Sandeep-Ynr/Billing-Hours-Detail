@@ -1,0 +1,121 @@
+@model IEnumerable<Client>
+@{
+    ViewData["Title"] = "Clients";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-people"></i> Clients
+        </h1>
+        <p class="page-subtitle">Manage your clients and their hourly rates</p>
+    </div>
+    <div class="action-buttons d-flex gap-2">
+        <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Export All
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" asp-action="ExportAllToExcel">
+                        <i class="bi bi-file-earmark-excel text-success me-2"></i> Export to Excel
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-action="ExportAllToPdf">
+                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Export to PDF
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Add Client
+        </a>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row g-4">
+        @foreach (var client in Model)
+        {
+            var totalHours = client.Tasks?.Sum(t => t.HoursWorked) ?? 0;
+            var totalIncome = totalHours * client.HourlyRate;
+            var taskCount = client.Tasks?.Count ?? 0;
+
+            <div class="col-lg-4 col-md-6">
+                <div class="client-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="client-avatar">
+                            @client.Name.Substring(0, 1).ToUpper()
+                        </div>
+                        <span class="@(client.IsActive ? "badge badge-success" : "badge badge-warning")">
+                            @(client.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                    <h4 class="client-name">@client.Name</h4>
+                    <div class="client-rate">
+                        $@client.HourlyRate.ToString("N2") <span>/hour</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(client.Description))
+                    {
+                        <p class="text-muted small mb-2">@client.Description</p>
+                    }
+                    @if (!string.IsNullOrEmpty(client.Email))
+                    {
+                        <p class="small mb-1">
+                            <i class="bi bi-envelope text-primary me-2"></i>@client.Email
+                        </p>
+                    }
+                    @if (!string.IsNullOrEmpty(client.Phone))
+                    {
+                        <p class="small mb-0">
+                            <i class="bi bi-phone text-primary me-2"></i>@client.Phone
+                        </p>
+                    }
+                    <div class="client-stats">
+                        <div class="client-stat">
+                            <div class="client-stat-value">@taskCount</div>
+                            <div class="client-stat-label">Tasks</div>
+                        </div>
+                        <div class="client-stat">
+                            <div class="client-stat-value hours">@totalHours.ToString("N1")h</div>
+                            <div class="client-stat-label">Hours</div>
+                        </div>
+                        <div class="client-stat">
+                            <div class="client-stat-value money">$@totalIncome.ToString("N0")</div>
+                            <div class="client-stat-label">Income</div>
+                        </div>
+                    </div>
+                    <div class="client-actions">
+                        <a asp-action="Details" asp-route-id="@client.Id" class="btn btn-sm btn-secondary flex-grow-1">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@client.Id" class="btn btn-sm btn-primary flex-grow-1">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a asp-controller="Tasks" asp-action="Create" asp-route-clientId="@client.Id" 
+                           class="btn btn-sm btn-success flex-grow-1">
+                            <i class="bi bi-plus-lg"></i> Task
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-people"></i>
+                <h3>No clients yet</h3>
+                <p class="text-muted mb-3">Add your first client to get started with billing</p>
+                <a asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="bi bi-person-plus"></i> Add Your First Client
+                </a>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,172 @@
+@model IEnumerable<WorkTask>
+@{
+    ViewData["Title"] = "Tasks";
+    var clients = ViewBag.Clients as List<Client>;
+    var selectedClientId = ViewBag.SelectedClientId as int?;
+    var startDate = ViewBag.StartDate as DateTime?;
+    var endDate = ViewBag.EndDate as DateTime?;
+    var totalHours = Model.Sum(t => t.HoursWorked);
+    var totalAmount = Model.Sum(t => t.HoursWorked * (t.Client?.HourlyRate ?? 0));
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-list-task"></i> Tasks
+        </h1>
+        <p class="page-subtitle">Track and manage your work tasks</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Task
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<form method="get" class="filter-bar">
+    <div class="filter-group">
+        <label>Client</label>
+        <select name="clientId" class="form-select">
+            <option value="">All Clients</option>
+            @if (clients != null)
+            {
+                @foreach (var client in clients)
+                {
+                    <option value="@client.Id" selected="@(selectedClientId == client.Id)">@client.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>From Date</label>
+        <input type="date" name="startDate" class="form-control" value="@(startDate?.ToString("yyyy-MM-dd"))" />
+    </div>
+    <div class="filter-group">
+        <label>To Date</label>
+        <input type="date" name="endDate" class="form-control" value="@(endDate?.ToString("yyyy-MM-dd"))" />
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <label>&nbsp;</label>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-lg"></i> Clear
+            </a>
+        </div>
+    </div>
+</form>
+
+<!-- Summary -->
+<div class="report-summary mb-4">
+    <div class="summary-item">
+        <div class="summary-value">@Model.Count()</div>
+        <div class="summary-label">Total Tasks</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-value hours">@totalHours.ToString("N1")h</div>
+        <div class="summary-label">Total Hours</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-value money">$@totalAmount.ToString("N2")</div>
+        <div class="summary-label">Total Amount</div>
+    </div>
+</div>
+
+<!-- Tasks Table -->
+@if (Model.Any())
+{
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Description</th>
+                        <th>Link</th>
+                        <th class="text-end">Hours</th>
+                        <th class="text-end">Rate</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model)
+                    {
+                        var amount = task.HoursWorked * (task.Client?.HourlyRate ?? 0);
+                        <tr>
+                            <td class="text-nowrap">
+                                <span class="badge badge-info">@task.TaskDate.ToString("MMM dd, yyyy")</span>
+                            </td>
+                            <td>
+                                <a asp-controller="Clients" asp-action="Details" asp-route-id="@task.ClientId" 
+                                   class="text-decoration-none fw-semibold">
+                                    @task.Client?.Name
+                                </a>
+                            </td>
+                            <td>
+                                <div class="truncate" title="@task.Description">@task.Description</div>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(task.TaskLink))
+                                {
+                                    <a href="@task.TaskLink" target="_blank" class="task-link">
+                                        <i class="bi bi-box-arrow-up-right"></i> Open
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td class="text-end hours">@task.HoursWorked.ToString("N1")h</td>
+                            <td class="text-end rate">$@(task.Client?.HourlyRate.ToString("N2") ?? "0.00")</td>
+                            <td class="text-end money">$@amount.ToString("N2")</td>
+                            <td class="text-center">
+                                <div class="action-buttons justify-content-center">
+                                    <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-icon btn-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-sm btn-icon btn-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold">
+                        <td colspan="4" class="text-end">Total:</td>
+                        <td class="text-end hours">@totalHours.ToString("N1")h</td>
+                        <td></td>
+                        <td class="text-end money">$@totalAmount.ToString("N2")</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-clipboard-check"></i>
+                <h3>No tasks found</h3>
+                <p class="text-muted mb-3">
+                    @if (selectedClientId.HasValue || startDate.HasValue || endDate.HasValue)
+                    {
+                        <span>Try adjusting your filters or </span>
+                    }
+                    <span>create your first task to start tracking time</span>
+                </p>
+                <a asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-lg"></i> Add Task
+                </a>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,167 @@
+@model IEnumerable<WorkTask>
+@{
+    var client = ViewBag.Client as Client;
+    ViewData["Title"] = $"Report - {client?.Name}";
+    var startDate = ViewBag.StartDate as DateTime?;
+    var endDate = ViewBag.EndDate as DateTime?;
+    var totalHours = ViewBag.TotalHours as decimal? ?? 0;
+    var totalIncome = ViewBag.TotalIncome as decimal? ?? 0;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-person-lines-fill"></i> @client?.Name
+        </h1>
+        <p class="page-subtitle">Detailed task report for this client</p>
+    </div>
+    <div class="action-buttons d-flex gap-2 flex-wrap">
+        <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" asp-action="ExportClientDetailsToExcel" 
+                       asp-route-id="@client?.Id"
+                       asp-route-startDate="@startDate?.ToString("yyyy-MM-dd")"
+                       asp-route-endDate="@endDate?.ToString("yyyy-MM-dd")">
+                        <i class="bi bi-file-earmark-excel text-success me-2"></i> Export to Excel
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-action="ExportClientDetailsToPdf"
+                       asp-route-id="@client?.Id"
+                       asp-route-startDate="@startDate?.ToString("yyyy-MM-dd")"
+                       asp-route-endDate="@endDate?.ToString("yyyy-MM-dd")">
+                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Export to PDF
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <a asp-action="Index" 
+           asp-route-startDate="@startDate?.ToString("yyyy-MM-dd")"
+           asp-route-endDate="@endDate?.ToString("yyyy-MM-dd")"
+           class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+
+<!-- Client Summary -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card primary">
+            <i class="bi bi-currency-dollar stat-icon"></i>
+            <div class="stat-value">$@totalIncome.ToString("N2")</div>
+            <div class="stat-label">Total Income</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card success">
+            <i class="bi bi-clock-history stat-icon"></i>
+            <div class="stat-value">@totalHours.ToString("N1")h</div>
+            <div class="stat-label">Total Hours</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card purple">
+            <i class="bi bi-cash stat-icon"></i>
+            <div class="stat-value">$@(client?.HourlyRate.ToString("N2") ?? "0.00")</div>
+            <div class="stat-label">Hourly Rate</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card dark">
+            <i class="bi bi-list-check stat-icon"></i>
+            <div class="stat-value">@Model.Count()</div>
+            <div class="stat-label">Total Tasks</div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Range Info -->
+@if (startDate.HasValue || endDate.HasValue)
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Showing data 
+        @if (startDate.HasValue && endDate.HasValue)
+        {
+            <span>from <strong>@startDate.Value.ToString("MMM dd, yyyy")</strong> to <strong>@endDate.Value.ToString("MMM dd, yyyy")</strong></span>
+        }
+        else if (startDate.HasValue)
+        {
+            <span>from <strong>@startDate.Value.ToString("MMM dd, yyyy")</strong></span>
+        }
+        else if (endDate.HasValue)
+        {
+            <span>until <strong>@endDate.Value.ToString("MMM dd, yyyy")</strong></span>
+        }
+    </div>
+}
+
+<!-- Tasks Table -->
+@if (Model.Any())
+{
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Link</th>
+                        <th class="text-end">Hours</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model)
+                    {
+                        var amount = task.HoursWorked * (client?.HourlyRate ?? 0);
+                        <tr>
+                            <td class="text-nowrap">
+                                <span class="badge badge-info">@task.TaskDate.ToString("MMM dd, yyyy")</span>
+                            </td>
+                            <td>@task.Description</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(task.TaskLink))
+                                {
+                                    <a href="@task.TaskLink" target="_blank" class="task-link">
+                                        <i class="bi bi-box-arrow-up-right"></i> Open
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td class="text-end hours">@task.HoursWorked.ToString("N1")h</td>
+                            <td class="text-end money">$@amount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold">
+                        <td colspan="3" class="text-end">Total:</td>
+                        <td class="text-end hours">@totalHours.ToString("N1")h</td>
+                        <td class="text-end money large">$@totalIncome.ToString("N2")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-clipboard-x"></i>
+                <h3>No tasks found</h3>
+                <p class="text-muted">No tasks found for this client in the selected date range.</p>
+            </div>
+        </div>
+    </div>
+}

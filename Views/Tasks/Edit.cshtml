@@ -1,0 +1,142 @@
+@model TaskEditViewModel
+@{
+    ViewData["Title"] = "Edit Task";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-pencil-square"></i> Edit Task
+        </h1>
+        <p class="page-subtitle">Update task details</p>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Tasks
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    <input type="hidden" asp-for="Task.Id" />
+                    <input type="hidden" asp-for="Task.CreatedAt" />
+                    
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <label asp-for="Task.ClientId" class="form-label">Client *</label>
+                            <select asp-for="Task.ClientId" class="form-select" id="clientSelect">
+                                <option value="">-- Select a Client --</option>
+                                @foreach (var client in Model.Clients)
+                                {
+                                    <option value="@client.Id" data-rate="@client.HourlyRate">
+                                        @client.Name ($@client.HourlyRate.ToString("N2")/hr)
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="Task.ClientId" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="Task.TaskDate" class="form-label">Task Date *</label>
+                            <input asp-for="Task.TaskDate" type="date" class="form-control" />
+                            <span asp-validation-for="Task.TaskDate" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label asp-for="Task.Description" class="form-label">Task Description *</label>
+                            <textarea asp-for="Task.Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Task.Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label asp-for="Task.TaskLink" class="form-label">Task Link (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                <input asp-for="Task.TaskLink" type="url" class="form-control" />
+                            </div>
+                            <span asp-validation-for="Task.TaskLink" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="Task.HoursWorked" class="form-label">Hours Worked *</label>
+                            <div class="input-group">
+                                <input asp-for="Task.HoursWorked" type="number" step="0.25" min="0.25" max="24" 
+                                    class="form-control" id="hoursInput" />
+                                <span class="input-group-text">hours</span>
+                            </div>
+                            <span asp-validation-for="Task.HoursWorked" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Amount Preview -->
+                    <div class="mt-4 p-4 bg-light rounded-3" id="previewSection">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1">Estimated Amount</h5>
+                                <p class="text-muted mb-0 small">
+                                    <span id="previewHours">0</span> hours × $<span id="previewRate">0.00</span>/hr
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="money large" id="previewAmount">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Delete" asp-route-id="@Model.Task.Id" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete Task
+                        </a>
+                        <div class="d-flex gap-3">
+                            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-lg"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const clientSelect = document.getElementById('clientSelect');
+            const hoursInput = document.getElementById('hoursInput');
+            const previewSection = document.getElementById('previewSection');
+            const previewHours = document.getElementById('previewHours');
+            const previewRate = document.getElementById('previewRate');
+            const previewAmount = document.getElementById('previewAmount');
+            
+            function updatePreview() {
+                const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+                const rate = parseFloat(selectedOption.getAttribute('data-rate')) || 0;
+                const hours = parseFloat(hoursInput.value) || 0;
+                const amount = rate * hours;
+                
+                if (rate > 0 && hours > 0) {
+                    previewSection.style.display = 'block';
+                    previewHours.textContent = hours.toFixed(2);
+                    previewRate.textContent = rate.toFixed(2);
+                    previewAmount.textContent = '$' + amount.toFixed(2);
+                } else {
+                    previewSection.style.display = 'none';
+                }
+            }
+            
+            clientSelect.addEventListener('change', updatePreview);
+            hoursInput.addEventListener('input', updatePreview);
+            
+            // Initial update
+            updatePreview();
+        });
+    </script>
+}

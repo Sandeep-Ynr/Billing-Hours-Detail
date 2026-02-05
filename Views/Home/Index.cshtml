@@ -1,0 +1,214 @@
+﻿@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+        <p class="page-subtitle">Overview of your billing and task tracking</p>
+    </div>
+    <div class="action-buttons">
+        <a asp-controller="Tasks" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> New Task
+        </a>
+        <a asp-controller="Clients" asp-action="Create" class="btn btn-outline-primary">
+            <i class="bi bi-person-plus"></i> New Client
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card primary">
+            <i class="bi bi-currency-dollar stat-icon"></i>
+            <div class="stat-value">$@Model.TotalRevenue.ToString("N2")</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card success">
+            <i class="bi bi-clock-history stat-icon"></i>
+            <div class="stat-value">@Model.TotalHours.ToString("N1")</div>
+            <div class="stat-label">Hours Worked</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card purple">
+            <i class="bi bi-people stat-icon"></i>
+            <div class="stat-value">@Model.ActiveClients</div>
+            <div class="stat-label">Active Clients</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card dark">
+            <i class="bi bi-list-check stat-icon"></i>
+            <div class="stat-value">@Model.TotalTasks</div>
+            <div class="stat-label">Total Tasks</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Top Clients -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <span><i class="bi bi-trophy text-warning me-2"></i>Top Clients by Income</span>
+                <a asp-controller="Reports" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.TopClients.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th class="text-end">Hours</th>
+                                    <th class="text-end">Income</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var client in Model.TopClients)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Reports" asp-action="ClientDetails" asp-route-id="@client.ClientId" 
+                                               class="text-decoration-none fw-semibold">
+                                                @client.ClientName
+                                            </a>
+                                            <div class="text-muted small">@client.TaskCount tasks</div>
+                                        </td>
+                                        <td class="text-end hours">@client.TotalHours.ToString("N1")h</td>
+                                        <td class="text-end money">$@client.TotalIncome.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state py-4">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <h5>No data yet</h5>
+                        <p class="text-muted">Start adding tasks to see client statistics</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Tasks -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <span><i class="bi bi-clock-history text-primary me-2"></i>Recent Tasks</span>
+                <a asp-controller="Tasks" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentTasks.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Hours</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var task in Model.RecentTasks)
+                                {
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <span class="badge badge-info">@task.TaskDate.ToString("MMM dd")</span>
+                                        </td>
+                                        <td class="fw-medium">@task.ClientName</td>
+                                        <td>
+                                            <div class="truncate" title="@task.Description">@task.Description</div>
+                                        </td>
+                                        <td class="text-end hours">@task.HoursWorked.ToString("N1")h</td>
+                                        <td class="text-end money">$@task.Amount.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state py-4">
+                        <i class="bi bi-list-task"></i>
+                        <h5>No tasks yet</h5>
+                        <p class="text-muted mb-3">Get started by creating your first task</p>
+                        <a asp-controller="Tasks" asp-action="Create" class="btn btn-primary">
+                            <i class="bi bi-plus-lg"></i> Create Task
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="summary-item border-0 shadow-none">
+                            <div class="summary-value text-gradient">$@Model.AverageHourlyRate.ToString("N2")</div>
+                            <div class="summary-label">Average Hourly Rate</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item border-0 shadow-none">
+                            <div class="summary-value">
+                                @if (Model.TotalHours > 0)
+                                {
+                                    @((Model.TotalRevenue / Model.TotalHours).ToString("N2"))
+                                }
+                                else
+                                {
+                                    <span>$0.00</span>
+                                }
+                            </div>
+                            <div class="summary-label">Effective Rate</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item border-0 shadow-none">
+                            <div class="summary-value">@Model.TotalClients</div>
+                            <div class="summary-label">Total Clients</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item border-0 shadow-none">
+                            <div class="summary-value">
+                                @if (Model.TotalClients > 0)
+                                {
+                                    @((Model.TotalTasks / (decimal)Model.TotalClients).ToString("N1"))
+                                }
+                                else
+                                {
+                                    <span>0</span>
+                                }
+                            </div>
+                            <div class="summary-label">Avg Tasks/Client</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,93 @@
+@model WorkTask
+@{
+    ViewData["Title"] = "Task Details";
+    var amount = Model.HoursWorked * (Model.Client?.HourlyRate ?? 0);
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-clipboard-check"></i> Task Details
+        </h1>
+        <p class="page-subtitle">View task information</p>
+    </div>
+    <div class="action-buttons">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">CLIENT</label>
+                        <p class="fw-semibold mb-0">
+                            <a asp-controller="Clients" asp-action="Details" asp-route-id="@Model.ClientId" 
+                               class="text-decoration-none">
+                                @Model.Client?.Name
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">TASK DATE</label>
+                        <p class="mb-0">
+                            <span class="badge badge-info">@Model.TaskDate.ToString("MMMM dd, yyyy")</span>
+                        </p>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small">DESCRIPTION</label>
+                        <p class="mb-0">@Model.Description</p>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.TaskLink))
+                    {
+                        <div class="col-12">
+                            <label class="form-label text-muted small">TASK LINK</label>
+                            <p class="mb-0">
+                                <a href="@Model.TaskLink" target="_blank" class="task-link">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>@Model.TaskLink
+                                </a>
+                            </p>
+                        </div>
+                    }
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="summary-item border-0 shadow-none">
+                            <div class="summary-value hours">@Model.HoursWorked.ToString("N2")h</div>
+                            <div class="summary-label">Hours Worked</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="summary-item border-0 shadow-none">
+                            <div class="summary-value rate">$@(Model.Client?.HourlyRate.ToString("N2") ?? "0.00")</div>
+                            <div class="summary-label">Hourly Rate</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="summary-item border-0 shadow-none">
+                            <div class="summary-value money large">$@amount.ToString("N2")</div>
+                            <div class="summary-label">Total Amount</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="text-muted small text-center">
+                    <i class="bi bi-clock me-1"></i>
+                    Created on @Model.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,212 @@
+@model ReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-bar-chart-line"></i> Income Reports
+        </h1>
+        <p class="page-subtitle">View client-wise and total income reports</p>
+    </div>
+    <div class="action-buttons d-flex gap-2">
+        <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Export Report
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" asp-action="ExportToExcel" 
+                       asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                       asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                       asp-route-clientId="@Model.ClientId">
+                        <i class="bi bi-file-earmark-excel text-success me-2"></i> Export to Excel
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-action="ExportToPdf"
+                       asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                       asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                       asp-route-clientId="@Model.ClientId">
+                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Export to PDF
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <a asp-action="MonthlyBreakdown" class="btn btn-outline-primary">
+            <i class="bi bi-calendar3"></i> Monthly Breakdown
+        </a>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<form method="get" class="filter-bar">
+    <div class="filter-group">
+        <label>Client</label>
+        <select name="clientId" class="form-select">
+            <option value="">All Clients</option>
+            @foreach (var client in Model.Clients)
+            {
+                <option value="@client.Id" selected="@(Model.ClientId == client.Id)">@client.Name</option>
+            }
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>From Date</label>
+        <input type="date" name="startDate" class="form-control" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" />
+    </div>
+    <div class="filter-group">
+        <label>To Date</label>
+        <input type="date" name="endDate" class="form-control" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" />
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <label>&nbsp;</label>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Generate Report
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-lg"></i> Clear
+            </a>
+        </div>
+    </div>
+</form>
+
+<!-- Grand Total Summary -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="stat-card primary">
+            <i class="bi bi-currency-dollar stat-icon"></i>
+            <div class="stat-value">$@Model.GrandTotalIncome.ToString("N2")</div>
+            <div class="stat-label">Total Income</div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="stat-card success">
+            <i class="bi bi-clock-history stat-icon"></i>
+            <div class="stat-value">@Model.GrandTotalHours.ToString("N1")h</div>
+            <div class="stat-label">Total Hours</div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="stat-card purple">
+            <i class="bi bi-people stat-icon"></i>
+            <div class="stat-value">@Model.ClientReports.Count</div>
+            <div class="stat-label">Clients with Tasks</div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Range Info -->
+@if (Model.StartDate.HasValue || Model.EndDate.HasValue)
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Showing data 
+        @if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+        {
+            <span>from <strong>@Model.StartDate.Value.ToString("MMM dd, yyyy")</strong> to <strong>@Model.EndDate.Value.ToString("MMM dd, yyyy")</strong></span>
+        }
+        else if (Model.StartDate.HasValue)
+        {
+            <span>from <strong>@Model.StartDate.Value.ToString("MMM dd, yyyy")</strong></span>
+        }
+        else if (Model.EndDate.HasValue)
+        {
+            <span>until <strong>@Model.EndDate.Value.ToString("MMM dd, yyyy")</strong></span>
+        }
+    </div>
+}
+
+<!-- Client-wise Report Table -->
+@if (Model.ClientReports.Any())
+{
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Client</th>
+                        <th class="text-end">Hourly Rate</th>
+                        <th class="text-center">Tasks</th>
+                        <th class="text-end">Hours</th>
+                        <th class="text-end">Income</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var rank = 1; }
+                    @foreach (var report in Model.ClientReports)
+                    {
+                        var percentage = Model.GrandTotalIncome > 0 
+                            ? (report.TotalIncome / Model.GrandTotalIncome * 100) 
+                            : 0;
+                        <tr>
+                            <td>
+                                <span class="badge @(rank == 1 ? "bg-warning" : rank == 2 ? "bg-secondary" : rank == 3 ? "bg-danger" : "bg-light text-dark")">
+                                    @rank
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="client-avatar" style="width: 40px; height: 40px; font-size: 1rem;">
+                                        @report.ClientName.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <strong>@report.ClientName</strong>
+                                        <div class="progress mt-1" style="height: 4px; width: 100px;">
+                                            <div class="progress-bar" style="width: @percentage%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end rate">$@report.HourlyRate.ToString("N2")/hr</td>
+                            <td class="text-center">
+                                <span class="badge badge-primary">@report.TaskCount</span>
+                            </td>
+                            <td class="text-end hours">@report.TotalHours.ToString("N1")h</td>
+                            <td class="text-end money large">$@report.TotalIncome.ToString("N2")</td>
+                            <td class="text-center">
+                                <a asp-action="ClientDetails" asp-route-id="@report.ClientId" 
+                                   asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                   asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> Details
+                                </a>
+                            </td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold" style="font-size: 1.1rem;">
+                        <td colspan="3" class="text-end">Grand Total:</td>
+                        <td class="text-center">
+                            <span class="badge badge-primary">@Model.ClientReports.Sum(r => r.TaskCount)</span>
+                        </td>
+                        <td class="text-end hours">@Model.GrandTotalHours.ToString("N1")h</td>
+                        <td class="text-end money large">$@Model.GrandTotalIncome.ToString("N2")</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-graph-up"></i>
+                <h3>No data found</h3>
+                <p class="text-muted mb-3">No tasks found for the selected date range. Try adjusting your filters.</p>
+                <a asp-controller="Tasks" asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Add Task
+                </a>
+            </div>
+        </div>
+    </div>
+}

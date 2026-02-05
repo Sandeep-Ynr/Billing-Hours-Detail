@@ -1,0 +1,61 @@
+@model WorkTask
+@{
+    ViewData["Title"] = "Delete Task";
+    var amount = Model.HoursWorked * (Model.Client?.HourlyRate ?? 0);
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title text-danger">
+            <i class="bi bi-exclamation-triangle"></i> Delete Task
+        </h1>
+        <p class="page-subtitle">This action cannot be undone</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-trash me-2"></i> Confirm Deletion
+            </div>
+            <div class="card-body text-center p-4">
+                <div class="mb-4">
+                    <span class="badge badge-info mb-3" style="font-size: 1rem;">
+                        @Model.TaskDate.ToString("MMMM dd, yyyy")
+                    </span>
+                    <h4>@Model.Client?.Name</h4>
+                    <p class="text-muted">@Model.Description</p>
+                </div>
+                
+                <div class="row mb-4 text-center">
+                    <div class="col-6">
+                        <div class="hours" style="font-size: 1.5rem;">@Model.HoursWorked.ToString("N1")h</div>
+                        <div class="text-muted small">Hours</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="money" style="font-size: 1.5rem;">$@amount.ToString("N2")</div>
+                        <div class="text-muted small">Amount</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    This will permanently delete this task and its billing data.
+                </div>
+                
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-action="Index" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-trash"></i> Delete Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

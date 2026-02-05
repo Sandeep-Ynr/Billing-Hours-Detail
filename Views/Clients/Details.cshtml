@@ -1,0 +1,195 @@
+@model Client
+@{
+    ViewData["Title"] = Model.Name;
+    var totalHours = Model.Tasks?.Sum(t => t.HoursWorked) ?? 0;
+    var totalIncome = totalHours * Model.HourlyRate;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="bi bi-person"></i> @Model.Name
+        </h1>
+        <p class="page-subtitle">Client details and task history</p>
+    </div>
+    <div class="action-buttons d-flex gap-2 flex-wrap">
+        <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" asp-action="ExportToExcel" asp-route-id="@Model.Id">
+                        <i class="bi bi-file-earmark-excel text-success me-2"></i> Export to Excel
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-action="ExportToPdf" asp-route-id="@Model.Id">
+                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Export to PDF
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <a asp-controller="Tasks" asp-action="Create" asp-route-clientId="@Model.Id" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Add Task
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Client Info Card -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="client-avatar mx-auto" style="width: 80px; height: 80px; font-size: 2rem;">
+                        @Model.Name.Substring(0, 1).ToUpper()
+                    </div>
+                    <h3 class="mt-3 mb-1">@Model.Name</h3>
+                    <span class="@(Model.IsActive ? "badge badge-success" : "badge badge-warning")">
+                        @(Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+                
+                <div class="mb-4 text-center">
+                    <div class="client-rate">
+                        $@Model.HourlyRate.ToString("N2") <span>/hour</span>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <p class="text-muted">@Model.Description</p>
+                }
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <strong class="d-block text-muted small mb-1">CONTACT INFORMATION</strong>
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <p class="mb-2">
+                            <i class="bi bi-envelope text-primary me-2"></i>
+                            <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+                        </p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <p class="mb-2">
+                            <i class="bi bi-phone text-primary me-2"></i>
+                            <a href="tel:@Model.Phone" class="text-decoration-none">@Model.Phone</a>
+                        </p>
+                    }
+                </div>
+                
+                <hr>
+                
+                <div class="text-muted small">
+                    <i class="bi bi-calendar me-2"></i>
+                    Added on @Model.CreatedAt.ToString("MMMM dd, yyyy")
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats & Tasks -->
+    <div class="col-lg-8">
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card primary" style="min-height: 100px;">
+                    <div class="stat-value">$@totalIncome.ToString("N2")</div>
+                    <div class="stat-label">Total Income</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card success" style="min-height: 100px;">
+                    <div class="stat-value">@totalHours.ToString("N1")h</div>
+                    <div class="stat-label">Total Hours</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card purple" style="min-height: 100px;">
+                    <div class="stat-value">@(Model.Tasks?.Count ?? 0)</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task History -->
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-list-task me-2"></i>Task History</span>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Tasks != null && Model.Tasks.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Link</th>
+                                    <th class="text-end">Hours</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var task in Model.Tasks.OrderByDescending(t => t.TaskDate))
+                                {
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <span class="badge badge-info">@task.TaskDate.ToString("MMM dd, yyyy")</span>
+                                        </td>
+                                        <td>
+                                            <div class="truncate" title="@task.Description">@task.Description</div>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(task.TaskLink))
+                                            {
+                                                <a href="@task.TaskLink" target="_blank" class="task-link">
+                                                    <i class="bi bi-box-arrow-up-right"></i> Link
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                        <td class="text-end hours">@task.HoursWorked.ToString("N1")h</td>
+                                        <td class="text-end money">$@((task.HoursWorked * Model.HourlyRate).ToString("N2"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light fw-bold">
+                                    <td colspan="3" class="text-end">Total:</td>
+                                    <td class="text-end hours">@totalHours.ToString("N1")h</td>
+                                    <td class="text-end money">$@totalIncome.ToString("N2")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state py-5">
+                        <i class="bi bi-clipboard-check"></i>
+                        <h5>No tasks yet</h5>
+                        <p class="text-muted mb-3">Start tracking time for this client</p>
+                        <a asp-controller="Tasks" asp-action="Create" asp-route-clientId="@Model.Id" class="btn btn-success">
+                            <i class="bi bi-plus-lg"></i> Add First Task
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
