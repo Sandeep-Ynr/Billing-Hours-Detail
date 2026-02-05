@@ -25,8 +25,8 @@
     <div class="col-lg-3 col-md-6">
         <div class="stat-card primary">
             <i class="bi bi-currency-dollar stat-icon"></i>
-            <div class="stat-value">$@Model.TotalRevenue.ToString("N2")</div>
-            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value">₹@Model.TotalRevenue.ToString("N2")</div>
+            <div class="stat-label">Total Revenue (INR)</div>
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
@@ -84,7 +84,7 @@
                                             <div class="text-muted small">@client.TaskCount tasks</div>
                                         </td>
                                         <td class="text-end hours">@client.TotalHours.ToString("N1")h</td>
-                                        <td class="text-end money">$@client.TotalIncome.ToString("N2")</td>
+                                        <td class="text-end money">@(client.Currency == "USD" ? "$" : "₹")@client.TotalIncome.ToString("N2")</td>
                                     </tr>
                                 }
                             </tbody>
@@ -136,7 +136,7 @@
                                             <div class="truncate" title="@task.Description">@task.Description</div>
                                         </td>
                                         <td class="text-end hours">@task.HoursWorked.ToString("N1")h</td>
-                                        <td class="text-end money">$@task.Amount.ToString("N2")</td>
+                                        <td class="text-end money">@(task.Currency == "USD" ? "$" : "₹")@task.Amount.ToString("N2")</td>
                                     </tr>
                                 }
                             </tbody>

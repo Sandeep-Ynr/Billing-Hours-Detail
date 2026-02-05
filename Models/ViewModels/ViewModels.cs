@@ -17,8 +17,10 @@ namespace BillingSoftware.Models.ViewModels
         public int ClientId { get; set; }
         public string ClientName { get; set; } = string.Empty;
         public decimal HourlyRate { get; set; }
+        public string Currency { get; set; } = "INR";
         public decimal TotalHours { get; set; }
         public decimal TotalIncome { get; set; }
+        public decimal TotalIncomeInInr { get; set; } // For normalized calculations
         public int TaskCount { get; set; }
     }
 
@@ -28,6 +30,7 @@ namespace BillingSoftware.Models.ViewModels
         public string ClientName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public DateTime TaskDate { get; set; }
+        public string Currency { get; set; } = "INR";
         public decimal HoursWorked { get; set; }
         public decimal Amount { get; set; }
     }

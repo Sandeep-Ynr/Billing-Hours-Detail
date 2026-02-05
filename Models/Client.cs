@@ -17,6 +17,12 @@ namespace BillingSoftware.Models
         [DataType(DataType.Currency)]
         public decimal HourlyRate { get; set; }
 
+        [Display(Name = "Currency")]
+        public string Currency { get; set; } = "INR"; // INR or USD
+
+        [Display(Name = "Conversion Rate")]
+        public decimal ConversionRate { get; set; } = 1;
+
         [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string? Description { get; set; }
 

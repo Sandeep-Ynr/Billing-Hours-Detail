@@ -29,20 +29,23 @@ namespace BillingSoftware.Controllers
                 ActiveClients = clients.Count(c => c.IsActive),
                 TotalTasks = tasks.Count,
                 TotalHours = tasks.Sum(t => t.HoursWorked),
-                TotalRevenue = tasks.Sum(t => t.HoursWorked * (t.Client?.HourlyRate ?? 0)),
+                TotalRevenue = tasks.Sum(t => 
+                    t.HoursWorked * (t.Client?.HourlyRate ?? 0) * (t.Client?.Currency == "USD" ? (t.Client?.ConversionRate ?? 1) : 1)),
                 AverageHourlyRate = clients.Any() ? clients.Average(c => c.HourlyRate) : 0,
                 TopClients = tasks
-                    .GroupBy(t => new { t.ClientId, t.Client!.Name, t.Client.HourlyRate })
+                    .GroupBy(t => new { t.ClientId, t.Client!.Name, t.Client.HourlyRate, t.Client.Currency, t.Client.ConversionRate })
                     .Select(g => new ClientReportViewModel
                     {
                         ClientId = g.Key.ClientId,
                         ClientName = g.Key.Name,
                         HourlyRate = g.Key.HourlyRate,
+                        Currency = g.Key.Currency,
                         TotalHours = g.Sum(t => t.HoursWorked),
                         TotalIncome = g.Sum(t => t.HoursWorked * g.Key.HourlyRate),
+                        TotalIncomeInInr = g.Sum(t => t.HoursWorked * g.Key.HourlyRate * (g.Key.Currency == "USD" ? g.Key.ConversionRate : 1)),
                         TaskCount = g.Count()
                     })
-                    .OrderByDescending(c => c.TotalIncome)
+                    .OrderByDescending(c => c.TotalIncomeInInr)
                     .Take(5)
                     .ToList(),
                 RecentTasks = tasks
@@ -56,6 +59,7 @@ namespace BillingSoftware.Controllers
                         Description = t.Description,
                         TaskDate = t.TaskDate,
                         HoursWorked = t.HoursWorked,
+                        Currency = t.Client?.Currency ?? "INR",
                         Amount = t.HoursWorked * (t.Client?.HourlyRate ?? 0)
                     })
                     .ToList()

@@ -69,13 +69,13 @@
                     </div>
                     <div class="col-md-4">
                         <div class="summary-item border-0 shadow-none">
-                            <div class="summary-value rate">$@(Model.Client?.HourlyRate.ToString("N2") ?? "0.00")</div>
+                            <div class="summary-value rate">@(Model.Client?.Currency == "USD" ? "$" : "₹")@(Model.Client?.HourlyRate.ToString("N2") ?? "0.00")</div>
                             <div class="summary-label">Hourly Rate</div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="summary-item border-0 shadow-none">
-                            <div class="summary-value money large">$@amount.ToString("N2")</div>
+                            <div class="summary-value money large">@(Model.Client?.Currency == "USD" ? "$" : "₹")@amount.ToString("N2")</div>
                             <div class="summary-label">Total Amount</div>
                         </div>
                     </div>

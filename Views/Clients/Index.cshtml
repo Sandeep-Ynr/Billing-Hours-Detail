@@ -55,7 +55,7 @@
                     </div>
                     <h4 class="client-name">@client.Name</h4>
                     <div class="client-rate">
-                        $@client.HourlyRate.ToString("N2") <span>/hour</span>
+                        @(client.Currency == "USD" ? "$" : "₹")@client.HourlyRate.ToString("N2") <span>/hour</span>
                     </div>
                     @if (!string.IsNullOrEmpty(client.Description))
                     {
@@ -83,7 +83,7 @@
                             <div class="client-stat-label">Hours</div>
                         </div>
                         <div class="client-stat">
-                            <div class="client-stat-value money">$@totalIncome.ToString("N0")</div>
+                            <div class="client-stat-value money">@(client.Currency == "USD" ? "$" : "₹")@totalIncome.ToString("N0")</div>
                             <div class="client-stat-label">Income</div>
                         </div>
                     </div>

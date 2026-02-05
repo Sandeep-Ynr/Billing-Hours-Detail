@@ -6,7 +6,7 @@
     var startDate = ViewBag.StartDate as DateTime?;
     var endDate = ViewBag.EndDate as DateTime?;
     var totalHours = Model.Sum(t => t.HoursWorked);
-    var totalAmount = Model.Sum(t => t.HoursWorked * (t.Client?.HourlyRate ?? 0));
+    var totalAmount = Model.Sum(t => t.HoursWorked * (t.Client?.HourlyRate ?? 0) * (t.Client?.Currency == "USD" ? (t.Client?.ConversionRate ?? 1) : 1));
 }
 
 <div class="page-header">
@@ -68,8 +68,8 @@
         <div class="summary-label">Total Hours</div>
     </div>
     <div class="summary-item">
-        <div class="summary-value money">$@totalAmount.ToString("N2")</div>
-        <div class="summary-label">Total Amount</div>
+        <div class="summary-value money">₹@totalAmount.ToString("N2")</div>
+        <div class="summary-label">Total Amount (INR)</div>
     </div>
 </div>
 
@@ -121,8 +121,8 @@
                                 }
                             </td>
                             <td class="text-end hours">@task.HoursWorked.ToString("N1")h</td>
-                            <td class="text-end rate">$@(task.Client?.HourlyRate.ToString("N2") ?? "0.00")</td>
-                            <td class="text-end money">$@amount.ToString("N2")</td>
+                            <td class="text-end rate">@(task.Client?.Currency == "USD" ? "$" : "₹")@(task.Client?.HourlyRate.ToString("N2") ?? "0.00")</td>
+                            <td class="text-end money">@(task.Client?.Currency == "USD" ? "$" : "₹")@amount.ToString("N2")</td>
                             <td class="text-center">
                                 <div class="action-buttons justify-content-center">
                                     <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-icon btn-primary" title="Edit">
@@ -141,7 +141,7 @@
                         <td colspan="4" class="text-end">Total:</td>
                         <td class="text-end hours">@totalHours.ToString("N1")h</td>
                         <td></td>
-                        <td class="text-end money">$@totalAmount.ToString("N2")</td>
+                        <td class="text-end money">₹@totalAmount.ToString("N2")</td>
                         <td></td>
                     </tr>
                 </tfoot>
