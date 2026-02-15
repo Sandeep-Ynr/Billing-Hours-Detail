@@ -28,20 +28,67 @@ namespace BillingSoftware.Controllers
         }
 
         // GET: Clients/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, int? year, int? month, DateTime? startDate, DateTime? endDate)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var client = await _context.Clients
+            // Fetch all clients for the dropdown
+            ViewBag.AllClients = await _context.Clients
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Name)
+                .Select(c => new { c.Id, c.Name })
+                .ToListAsync();
+
+            var clientQuery = _context.Clients
                 .Include(c => c.Tasks)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .AsQueryable();
+
+            var client = await clientQuery.FirstOrDefaultAsync(m => m.Id == id);
+
             if (client == null)
             {
                 return NotFound();
             }
+
+            // Get available years from tasks for the dropdown (legacy support or alternative filter)
+            var years = client.Tasks.Select(t => t.TaskDate.Year).Distinct().OrderByDescending(y => y).ToList();
+            if (!years.Any()) years.Add(DateTime.Now.Year);
+            if (!years.Contains(DateTime.Now.Year)) years.Insert(0, DateTime.Now.Year);
+
+            // Filter Logic
+            if (startDate.HasValue || endDate.HasValue)
+            {
+                // Date Range Filter Priority
+                if (startDate.HasValue)
+                    client.Tasks = client.Tasks.Where(t => t.TaskDate >= startDate.Value).ToList();
+                
+                if (endDate.HasValue)
+                    client.Tasks = client.Tasks.Where(t => t.TaskDate <= endDate.Value).ToList();
+
+                // Clear Year/Month selection if using Date Range
+                ViewBag.SelectedYear = null;
+                ViewBag.SelectedMonth = null;
+            }
+            else
+            {
+                // Default / Year-Month Filter
+                int selectedYear = year ?? DateTime.Now.Year;
+                int selectedMonth = month ?? DateTime.Now.Month;
+
+                client.Tasks = client.Tasks
+                    .Where(t => t.TaskDate.Year == selectedYear && t.TaskDate.Month == selectedMonth)
+                    .ToList();
+
+                ViewBag.SelectedYear = selectedYear;
+                ViewBag.SelectedMonth = selectedMonth;
+            }
+
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.Years = years;
 
             return View(client);
         }

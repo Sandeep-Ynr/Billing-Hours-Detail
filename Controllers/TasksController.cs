@@ -17,25 +17,52 @@ namespace BillingSoftware.Controllers
         }
 
         // GET: Tasks
-        public async Task<IActionResult> Index(int? clientId, DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> Index(int? clientId, DateTime? startDate, DateTime? endDate, int? year, int? month)
         {
             var query = _context.Tasks
                 .Include(t => t.Client)
                 .AsQueryable();
 
+            // 1. Client Filter
             if (clientId.HasValue)
             {
                 query = query.Where(t => t.ClientId == clientId.Value);
             }
 
-            if (startDate.HasValue)
+            // 2. Date Filter Logic
+            if (startDate.HasValue || endDate.HasValue)
             {
-                query = query.Where(t => t.TaskDate >= startDate.Value);
+                // Date Range Priority
+                if (startDate.HasValue)
+                    query = query.Where(t => t.TaskDate >= startDate.Value);
+                
+                if (endDate.HasValue)
+                    query = query.Where(t => t.TaskDate <= endDate.Value);
+                
+                // Clear Year/Month if Date Range is active
+                year = null; 
+                month = null;
             }
-
-            if (endDate.HasValue)
+            else if (year.HasValue && month.HasValue)
             {
-                query = query.Where(t => t.TaskDate <= endDate.Value);
+                // Year/Month Filter
+                query = query.Where(t => t.TaskDate.Year == year.Value && t.TaskDate.Month == month.Value);
+            }
+            else
+            {
+                // Default: Current Month if no filters at all? 
+                // Creating a default to show *something* relevant if the user visits /Tasks directly
+                // But for now, let's keep it showing all or maybe default to current month to be consistent with Reports?
+                // The user said "filter data year and month wise", implying they want that control.
+                // Let's default to verified behavior: if no params, show all? Or distinct? 
+                // Existing behavior was "Show All". 
+                // Let's default to Current Month/Year to avoid loading thousands of tasks.
+                if (!year.HasValue && !month.HasValue)
+                {
+                   year = DateTime.Now.Year;
+                   month = DateTime.Now.Month;
+                   query = query.Where(t => t.TaskDate.Year == year.Value && t.TaskDate.Month == month.Value);
+                }
             }
 
             var tasks = await query
@@ -43,10 +70,24 @@ namespace BillingSoftware.Controllers
                 .ThenByDescending(t => t.CreatedAt)
                 .ToListAsync();
 
+            // Prepare Dropdown Data
+            // We need all available years from the DB for the dropdown
+            var availableYears = await _context.Tasks
+                .Select(t => t.TaskDate.Year)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToListAsync();
+            
+            if (!availableYears.Any()) availableYears.Add(DateTime.Now.Year);
+            if (!availableYears.Contains(DateTime.Now.Year)) availableYears.Insert(0, DateTime.Now.Year);
+
             ViewBag.Clients = await _context.Clients.Where(c => c.IsActive).ToListAsync();
             ViewBag.SelectedClientId = clientId;
             ViewBag.StartDate = startDate;
             ViewBag.EndDate = endDate;
+            ViewBag.SelectedYear = year;
+            ViewBag.SelectedMonth = month;
+            ViewBag.AvailableYears = availableYears;
 
             return View(tasks);
         }

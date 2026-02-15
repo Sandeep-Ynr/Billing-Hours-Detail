@@ -41,6 +41,59 @@
         </a>
     </div>
 </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card mb-4">
+    <div class="card-body py-3">
+        <form method="get" class="row g-3 align-items-end">
+            <input type="hidden" name="id" value="@Model.Id" />
+            
+            <div class="col-md-4">
+                <label class="form-label small text-muted">Client</label>
+                <select id="clientSwitcher" class="form-select">
+                    <option value="">Select Client...</option>
+                    @if (ViewBag.AllClients != null)
+                    {
+                        foreach (var client in ViewBag.AllClients)
+                        {
+                            var isSelected = client.Id == Model.Id;
+                            if (isSelected) 
+                            {
+                                <option value="@client.Id" selected>@client.Name</option>
+                            }
+                            else 
+                            { 
+                                <option value="@client.Id">@client.Name</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label small text-muted">From Date</label>
+                <input type="date" name="startDate" class="form-control" value="@(ViewBag.StartDate?.ToString("yyyy-MM-dd"))" />
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label small text-muted">To Date</label>
+                <input type="date" name="endDate" class="form-control" value="@(ViewBag.EndDate?.ToString("yyyy-MM-dd"))" />
+            </div>
+            
+            <div class="col-md-2" style="min-width: 200px;">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-purple flex-grow-1">
+                        <i class="bi bi-funnel-fill"></i> Filter
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-light-secondary">
+                        <i class="bi bi-x-lg"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div class="row g-4">
     <!-- Client Info Card -->
@@ -128,8 +181,38 @@
         
         <!-- Task History -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                 <span><i class="bi bi-list-task me-2"></i>Task History</span>
+                <form asp-action="Details" method="get" class="d-flex gap-2 align-items-center">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                        @foreach (var year in ViewBag.Years as List<int>)
+                        {
+                            if (year == ViewBag.SelectedYear)
+                            {
+                                <option value="@year" selected>@year</option>
+                            }
+                            else
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        }
+                    </select>
+                    <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            var date = new DateTime(2000, i, 1);
+                            if (i == ViewBag.SelectedMonth)
+                            {
+                                <option value="@i" selected>@date.ToString("MMMM")</option>
+                            }
+                            else
+                            {
+                                <option value="@i">@date.ToString("MMMM")</option>
+                            }
+                        }
+                    </select>
+                </form>
             </div>
             <div class="card-body p-0">
                 @if (Model.Tasks != null && Model.Tasks.Any())
@@ -138,6 +221,7 @@
                         <table class="table mb-0">
                             <thead>
                                 <tr>
+                                    <th style="width: 50px;">No.</th>
                                     <th>Date</th>
                                     <th>Description</th>
                                     <th>Link</th>
@@ -146,9 +230,11 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @{ int i = 1; }
                                 @foreach (var task in Model.Tasks.OrderByDescending(t => t.TaskDate))
                                 {
                                     <tr>
+                                        <td>@(i++)</td>
                                         <td class="text-nowrap">
                                             <span class="badge badge-info">@task.TaskDate.ToString("MMM dd, yyyy")</span>
                                         </td>
@@ -174,7 +260,7 @@
                             </tbody>
                             <tfoot>
                                 <tr class="table-light fw-bold">
-                                    <td colspan="3" class="text-end">Total:</td>
+                                    <td colspan="4" class="text-end">Total:</td>
                                     <td class="text-end hours">@totalHours.ToString("N1")h</td>
                                     <td class="text-end money">@(Model.Currency == "USD" ? "$" : "₹")@totalIncome.ToString("N2")</td>
                                 </tr>
@@ -197,3 +283,14 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('clientSwitcher').addEventListener('change', function() {
+            var clientId = this.value;
+            if (clientId) {
+                window.location.href = '/Clients/Details/' + clientId;
+            }
+        });
+    </script>
+}
