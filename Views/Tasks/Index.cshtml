@@ -36,21 +36,62 @@
             }
         </select>
     </div>
+    
+    <div class="filter-group">
+        <label>Year</label>
+        <select name="year" id="filterYear" class="form-select">
+            <option value="">-- Year --</option>
+            @if (ViewBag.AvailableYears != null)
+            {
+                foreach (var year in ViewBag.AvailableYears)
+                {
+                    if (year == ViewBag.SelectedYear)
+                    {
+                        <option value="@year" selected>@year</option>
+                    }
+                    else
+                    {
+                        <option value="@year">@year</option>
+                    }
+                }
+            }
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label>Month</label>
+        <select name="month" id="filterMonth" class="form-select">
+            <option value="">-- Month --</option>
+            @for (int i = 1; i <= 12; i++)
+            {
+                var date = new DateTime(2000, i, 1);
+                if (i == ViewBag.SelectedMonth)
+                {
+                    <option value="@i" selected>@date.ToString("MMMM")</option>
+                }
+                else
+                {
+                    <option value="@i">@date.ToString("MMMM")</option>
+                }
+            }
+        </select>
+    </div>
+
     <div class="filter-group">
         <label>From Date</label>
-        <input type="date" name="startDate" class="form-control" value="@(startDate?.ToString("yyyy-MM-dd"))" />
+        <input type="date" name="startDate" id="filterStartDate" class="form-control" value="@(startDate?.ToString("yyyy-MM-dd"))" />
     </div>
     <div class="filter-group">
         <label>To Date</label>
-        <input type="date" name="endDate" class="form-control" value="@(endDate?.ToString("yyyy-MM-dd"))" />
+        <input type="date" name="endDate" id="filterEndDate" class="form-control" value="@(endDate?.ToString("yyyy-MM-dd"))" />
     </div>
-    <div class="filter-group" style="flex: 0;">
+    <div class="filter-group" style="flex: 0; min-width: 200px;">
         <label>&nbsp;</label>
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel"></i> Filter
+            <button type="submit" class="btn btn-purple flex-grow-1 px-4">
+                <i class="bi bi-funnel-fill"></i> Filter
             </button>
-            <a asp-action="Index" class="btn btn-secondary">
+            <a asp-action="Index" class="btn btn-light-secondary px-3">
                 <i class="bi bi-x-lg"></i> Clear
             </a>
         </div>
@@ -169,4 +210,33 @@ else
             </div>
         </div>
     </div>
+}
+
+@section Scripts {
+    <script>
+        // UX Improvement: 
+        // If user selects Year/Month, clear custom dates.
+        // If user selects custom dates, clear Year/Month.
+        
+        document.getElementById('filterYear').addEventListener('change', function() {
+            if(this.value) {
+                document.getElementById('filterStartDate').value = '';
+                document.getElementById('filterEndDate').value = '';
+            }
+        });
+
+        document.getElementById('filterMonth').addEventListener('change', function() {
+            if(this.value) {
+                document.getElementById('filterStartDate').value = '';
+                document.getElementById('filterEndDate').value = '';
+            }
+        });
+
+        document.getElementById('filterStartDate').addEventListener('change', function() {
+            if(this.value) {
+                // document.getElementById('filterYear').value = ''; // Optional: don't auto-clear, backend handles priority
+                // document.getElementById('filterMonth').value = '';
+            }
+        });
+    </script>
 }
