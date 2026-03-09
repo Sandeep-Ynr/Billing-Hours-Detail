@@ -17,7 +17,7 @@ namespace BillingSoftware.Controllers
         }
 
         // GET: Tasks
-        public async Task<IActionResult> Index(int? clientId, DateTime? startDate, DateTime? endDate, int? year, int? month)
+        public async Task<IActionResult> Index(int? clientId, int? year, int? month)
         {
             var query = _context.Tasks
                 .Include(t => t.Client)
@@ -30,20 +30,7 @@ namespace BillingSoftware.Controllers
             }
 
             // 2. Date Filter Logic
-            if (startDate.HasValue || endDate.HasValue)
-            {
-                // Date Range Priority
-                if (startDate.HasValue)
-                    query = query.Where(t => t.TaskDate >= startDate.Value);
-                
-                if (endDate.HasValue)
-                    query = query.Where(t => t.TaskDate <= endDate.Value);
-                
-                // Clear Year/Month if Date Range is active
-                year = null; 
-                month = null;
-            }
-            else if (year.HasValue && month.HasValue)
+            if (year.HasValue && month.HasValue)
             {
                 // Year/Month Filter
                 query = query.Where(t => t.TaskDate.Year == year.Value && t.TaskDate.Month == month.Value);
@@ -83,8 +70,6 @@ namespace BillingSoftware.Controllers
 
             ViewBag.Clients = await _context.Clients.Where(c => c.IsActive).ToListAsync();
             ViewBag.SelectedClientId = clientId;
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
             ViewBag.SelectedYear = year;
             ViewBag.SelectedMonth = month;
             ViewBag.AvailableYears = availableYears;

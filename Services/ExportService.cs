@@ -378,98 +378,93 @@ namespace BillingSoftware.Services
             if (endDate.HasValue)
                 query = query.Where(t => t.TaskDate <= endDate.Value);
 
-            var tasks = await query.OrderByDescending(t => t.TaskDate).ToListAsync();
-            var dateRangeText = $"{(startDate?.ToString("MMM dd, yyyy") ?? "All time")} - {(endDate?.ToString("MMM dd, yyyy") ?? "Present")}";
+            var tasks = await query.OrderBy(t => t.TaskDate).ThenBy(t => t.Id).ToListAsync();
+            
+            var minDate = tasks.Any() ? tasks.Min(t => t.TaskDate) : DateTime.Now;
+            var maxDate = tasks.Any() ? tasks.Max(t => t.TaskDate) : DateTime.Now;
+            
+            var periodStart = startDate ?? minDate;
+            var periodEnd = endDate ?? maxDate;
+            
+            var billingPeriodStr = $"{periodStart:dd MMM yyyy} - {periodEnd:dd MMM yyyy}";
 
             var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(30);
+                    page.Margin(40);
                     page.DefaultTextStyle(x => x.FontSize(10));
 
-                    page.Header().Column(column =>
+                    page.Content().PaddingVertical(20).Column(col =>
                     {
-                        column.Item().Text(client.Name)
-                            .FontSize(24)
-                            .Bold()
-                            .FontColor(Colors.Indigo.Darken3);
-
-                        column.Item().PaddingTop(5).Row(row =>
+                        col.Item().PaddingBottom(20).Column(headerCol =>
                         {
-                            if (!string.IsNullOrEmpty(client.Email))
-                                row.AutoItem().Text($"📧 {client.Email}  ").FontSize(10);
-                            if (!string.IsNullOrEmpty(client.Phone))
-                                row.AutoItem().Text($"📞 {client.Phone}  ").FontSize(10);
-                            row.AutoItem().Text($"💰 ${client.HourlyRate:N2}/hr").FontSize(10).Bold();
+                            headerCol.Item().Row(row =>
+                            {
+                                row.RelativeItem().AlignCenter().AlignMiddle().Text("INVOICE")
+                                    .FontSize(18).Bold();
+
+                                row.RelativeItem().Column(c =>
+                                {
+                                    c.Item().Text($"Invoice Number: INV-{DateTime.Now:MMddyy}");
+                                    c.Item().Text($"Invoice Date: {DateTime.Now:dd MMMM yyyy}");
+                                    c.Item().Text($"Billing Period: {billingPeriodStr}");
+                                    c.Item().Text($"Hourly Rate: {client.Currency} {client.HourlyRate:0.00}");
+                                });
+                            });
+
+                            headerCol.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Black);
+                            
+                            headerCol.Item().PaddingTop(10).Text("From:").Bold();
+                            headerCol.Item().Text("Sandeep Kumar");
+                            headerCol.Item().Text("Yamunanagar, Haryana, India");
+                            headerCol.Item().Text("Email: sandeep327hr@gmail.com");
+                            headerCol.Item().Text("Phone: +91 94679 82858");
+
+                            headerCol.Item().PaddingTop(15).Text("Bill To:").Bold();
+                            headerCol.Item().Text(client.Name);
                         });
 
-                        column.Item().PaddingTop(3).Text(dateRangeText)
-                            .FontSize(11)
-                            .FontColor(Colors.Grey.Darken1);
-
-                        column.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-                    });
-
-                    page.Content().PaddingVertical(20).Table(table =>
-                    {
-                        table.ColumnsDefinition(columns =>
+                        col.Item().Table(table =>
                         {
-                            columns.RelativeColumn(2);   // Date
-                            columns.RelativeColumn(5);   // Description
-                            columns.RelativeColumn(1.5f); // Hours
-                            columns.RelativeColumn(2);   // Amount
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(1.3f); // Qty
+                                columns.RelativeColumn(5);    // Description
+                                columns.RelativeColumn(1.7f); // Unit Price
+                                columns.RelativeColumn(1.7f); // Amount
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Border(1).Padding(4).AlignCenter().Text("Qty (Hours)").Bold();
+                                header.Cell().Border(1).Padding(4).AlignLeft().Text("Description").Bold();
+                                header.Cell().Border(1).Padding(4).AlignLeft().Text($"Unit Price ({client.Currency})").Bold();
+                                header.Cell().Border(1).Padding(4).AlignLeft().Text($"Amount ({client.Currency})").Bold();
+                            });
+
+                            foreach (var task in tasks)
+                            {
+                                var amount = task.HoursWorked * client.HourlyRate;
+
+                                table.Cell().Border(1).Padding(4).AlignRight().Text($"{task.HoursWorked:0.00}");
+                                table.Cell().Border(1).Padding(4).AlignLeft().Text(task.Description);
+                                table.Cell().Border(1).Padding(4).AlignRight().Text($"{client.HourlyRate:0.00}");
+                                table.Cell().Border(1).Padding(4).AlignRight().Text($"{amount:0.00}");
+                            }
                         });
-
-                        // Header
-                        table.Header(header =>
-                        {
-                            header.Cell().Background(Colors.Indigo.Medium).Padding(8)
-                                .Text("Date").FontColor(Colors.White).Bold();
-                            header.Cell().Background(Colors.Indigo.Medium).Padding(8)
-                                .Text("Description").FontColor(Colors.White).Bold();
-                            header.Cell().Background(Colors.Indigo.Medium).Padding(8)
-                                .Text("Hours").FontColor(Colors.White).Bold().AlignRight();
-                            header.Cell().Background(Colors.Indigo.Medium).Padding(8)
-                                .Text("Amount").FontColor(Colors.White).Bold().AlignRight();
-                        });
-
-                        // Data rows
-                        var isAlternate = false;
-                        foreach (var task in tasks)
-                        {
-                            var bgColor = isAlternate ? Colors.Grey.Lighten4 : Colors.White;
-                            var amount = task.HoursWorked * client.HourlyRate;
-
-                            table.Cell().Background(bgColor).Padding(6).Text(task.TaskDate.ToString("MMM dd, yyyy"));
-                            table.Cell().Background(bgColor).Padding(6).Text(task.Description);
-                            table.Cell().Background(bgColor).Padding(6).AlignRight().Text($"{task.HoursWorked:N2}");
-                            table.Cell().Background(bgColor).Padding(6).AlignRight().Text($"${amount:N2}");
-
-                            isAlternate = !isAlternate;
-                        }
-
-                        // Totals
-                        var totalHours = tasks.Sum(t => t.HoursWorked);
+                        
                         var totalAmount = tasks.Sum(t => t.HoursWorked * client.HourlyRate);
-
-                        table.Cell().ColumnSpan(2).Background(Colors.Indigo.Darken2).Padding(8)
-                            .Text("TOTAL").FontColor(Colors.White).Bold();
-                        table.Cell().Background(Colors.Indigo.Darken2).Padding(8).AlignRight()
-                            .Text($"{totalHours:N2}").FontColor(Colors.White).Bold();
-                        table.Cell().Background(Colors.Indigo.Darken2).Padding(8).AlignRight()
-                            .Text($"${totalAmount:N2}").FontColor(Colors.White).Bold();
-                    });
-
-                    page.Footer().AlignCenter().Text(txt =>
-                    {
-                        txt.Span("Generated on ");
-                        txt.Span(DateTime.Now.ToString("MMMM dd, yyyy HH:mm")).Bold();
-                        txt.Span(" | Page ");
-                        txt.CurrentPageNumber();
-                        txt.Span(" of ");
-                        txt.TotalPages();
+                        
+                        col.Item().PaddingTop(15).Text($"Total Amount: {client.Currency} {totalAmount:0.00}")
+                            .Bold().FontSize(10);
+                            
+                        col.Item().PaddingTop(15).Text("Notes").Bold();
+                        col.Item().Text("Thank you for the opportunity to work on this project.");
+                        
+                        col.Item().PaddingTop(25).Text("Signature").Bold();
+                        col.Item().Text("Sandeep Kumar");
                     });
                 });
             });

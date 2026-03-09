@@ -72,7 +72,9 @@
 }
 
 /* Reset & Base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -229,14 +231,25 @@ main {
     right: -50%;
     width: 100%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
     pointer-events: none;
 }
 
-.stat-card.primary { background: var(--gradient-primary); }
-.stat-card.success { background: var(--gradient-success); }
-.stat-card.purple { background: var(--gradient-purple); }
-.stat-card.dark { background: var(--gradient-dark); }
+.stat-card.primary {
+    background: var(--gradient-primary);
+}
+
+.stat-card.success {
+    background: var(--gradient-success);
+}
+
+.stat-card.purple {
+    background: var(--gradient-purple);
+}
+
+.stat-card.dark {
+    background: var(--gradient-dark);
+}
 
 .stat-card .stat-icon {
     position: absolute;
@@ -284,12 +297,12 @@ main {
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1rem;
     white-space: nowrap;
 }
 
 .table tbody td {
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1rem;
     vertical-align: middle;
     border-bottom: 1px solid var(--gray-100);
     color: var(--gray-700);
@@ -432,7 +445,8 @@ main {
     font-size: 0.9rem;
 }
 
-.form-control, .form-select {
+.form-control,
+.form-select {
     border: 2px solid var(--gray-200);
     border-radius: var(--radius-md);
     padding: 0.75rem 1rem;
@@ -441,7 +455,8 @@ main {
     background-color: #fff;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--primary-400);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
     outline: none;
@@ -626,10 +641,9 @@ textarea.form-control {
 }
 
 .truncate {
-    max-width: 300px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: 600px;
+    white-space: normal;
+    word-break: break-word;
 }
 
 /* ================================================
@@ -835,17 +849,32 @@ footer a:hover {
     background-clip: text;
 }
 
-.bg-gradient-primary { background: var(--gradient-primary); }
-.bg-gradient-success { background: var(--gradient-success); }
-.bg-gradient-purple { background: var(--gradient-purple); }
+.bg-gradient-primary {
+    background: var(--gradient-primary);
+}
+
+.bg-gradient-success {
+    background: var(--gradient-success);
+}
+
+.bg-gradient-purple {
+    background: var(--gradient-purple);
+}
 
 .animate-fade-in {
     animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .pulse {
@@ -853,8 +882,15 @@ footer a:hover {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
 }
 
 /* ================================================
@@ -995,6 +1031,14 @@ footer a:hover {
     margin-right: 0.5rem;
 }
 
-.status-dot.active { background: var(--success); }
-.status-dot.inactive { background: var(--gray-400); }
-.status-dot.warning { background: var(--warning); }
+.status-dot.active {
+    background: var(--success);
+}
+
+.status-dot.inactive {
+    background: var(--gray-400);
+}
+
+.status-dot.warning {
+    background: var(--warning);
+}

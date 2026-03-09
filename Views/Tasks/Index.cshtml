@@ -3,8 +3,6 @@
     ViewData["Title"] = "Tasks";
     var clients = ViewBag.Clients as List<Client>;
     var selectedClientId = ViewBag.SelectedClientId as int?;
-    var startDate = ViewBag.StartDate as DateTime?;
-    var endDate = ViewBag.EndDate as DateTime?;
     var totalHours = Model.Sum(t => t.HoursWorked);
     var totalAmount = Model.Sum(t => t.HoursWorked * (t.Client?.HourlyRate ?? 0) * (t.Client?.Currency == "USD" ? (t.Client?.ConversionRate ?? 1) : 1));
 }
@@ -77,14 +75,6 @@
         </select>
     </div>
 
-    <div class="filter-group">
-        <label>From Date</label>
-        <input type="date" name="startDate" id="filterStartDate" class="form-control" value="@(startDate?.ToString("yyyy-MM-dd"))" />
-    </div>
-    <div class="filter-group">
-        <label>To Date</label>
-        <input type="date" name="endDate" id="filterEndDate" class="form-control" value="@(endDate?.ToString("yyyy-MM-dd"))" />
-    </div>
     <div class="filter-group" style="flex: 0; min-width: 200px;">
         <label>&nbsp;</label>
         <div class="d-flex gap-2">
@@ -198,7 +188,7 @@ else
                 <i class="bi bi-clipboard-check"></i>
                 <h3>No tasks found</h3>
                 <p class="text-muted mb-3">
-                    @if (selectedClientId.HasValue || startDate.HasValue || endDate.HasValue)
+                    @if (selectedClientId.HasValue || ViewBag.SelectedYear != null || ViewBag.SelectedMonth != null)
                     {
                         <span>Try adjusting your filters or </span>
                     }
@@ -210,33 +200,4 @@ else
             </div>
         </div>
     </div>
-}
-
-@section Scripts {
-    <script>
-        // UX Improvement: 
-        // If user selects Year/Month, clear custom dates.
-        // If user selects custom dates, clear Year/Month.
-        
-        document.getElementById('filterYear').addEventListener('change', function() {
-            if(this.value) {
-                document.getElementById('filterStartDate').value = '';
-                document.getElementById('filterEndDate').value = '';
-            }
-        });
-
-        document.getElementById('filterMonth').addEventListener('change', function() {
-            if(this.value) {
-                document.getElementById('filterStartDate').value = '';
-                document.getElementById('filterEndDate').value = '';
-            }
-        });
-
-        document.getElementById('filterStartDate').addEventListener('change', function() {
-            if(this.value) {
-                // document.getElementById('filterYear').value = ''; // Optional: don't auto-clear, backend handles priority
-                // document.getElementById('filterMonth').value = '';
-            }
-        });
-    </script>
 }
