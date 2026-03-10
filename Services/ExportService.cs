@@ -13,7 +13,7 @@ namespace BillingSoftware.Services
         Task<byte[]> ExportClientsToExcelAsync(int? clientId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportClientsToPdfAsync(int? clientId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportClientDetailToExcelAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null);
-        Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, string? customInvoiceNumber = null, string? customBillingPeriod = null);
+        Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, int? year = null, int? month = null, string? customInvoiceNumber = null, string? customBillingPeriod = null);
     }
 
     public class ExportService : IExportService
@@ -283,7 +283,7 @@ namespace BillingSoftware.Services
             if (endDate.HasValue)
                 query = query.Where(t => t.TaskDate <= endDate.Value);
 
-            var tasks = await query.OrderByDescending(t => t.TaskDate).ToListAsync();
+            var tasks = await query.OrderBy(t => t.TaskDate).ThenBy(t => t.Id).ToListAsync();
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add($"{client.Name} - Tasks");
@@ -365,7 +365,7 @@ namespace BillingSoftware.Services
             return stream.ToArray();
         }
 
-        public async Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, string? customInvoiceNumber = null, string? customBillingPeriod = null)
+        public async Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, int? year = null, int? month = null, string? customInvoiceNumber = null, string? customBillingPeriod = null)
         {
             var client = await _context.Clients.FindAsync(clientId);
             if (client == null)
@@ -398,6 +398,10 @@ namespace BillingSoftware.Services
                 query = query.Where(t => t.TaskDate >= startDate.Value);
             if (endDate.HasValue)
                 query = query.Where(t => t.TaskDate <= endDate.Value);
+            else if (!startDate.HasValue && !endDate.HasValue && year.HasValue && month.HasValue)
+            {
+                query = query.Where(t => t.TaskDate.Year == year.Value && t.TaskDate.Month == month.Value);
+            }
 
             var tasks = await query.OrderBy(t => t.TaskDate).ThenBy(t => t.Id).ToListAsync();
             
@@ -407,9 +411,20 @@ namespace BillingSoftware.Services
             var periodStart = startDate ?? minDate;
             var periodEnd = endDate ?? maxDate;
             
-            var billingPeriodStr = !string.IsNullOrWhiteSpace(customBillingPeriod) 
-                ? customBillingPeriod 
-                : $"{periodStart:dd MMM yyyy} - {periodEnd:dd MMM yyyy}";
+            string billingPeriodStr;
+            if (!string.IsNullOrWhiteSpace(customBillingPeriod))
+            {
+                billingPeriodStr = customBillingPeriod;
+            }
+            else if (!startDate.HasValue && !endDate.HasValue && year.HasValue && month.HasValue)
+            {
+                var specificMonth = new DateTime(year.Value, month.Value, 1);
+                billingPeriodStr = specificMonth.ToString("MMMM yyyy");
+            }
+            else
+            {
+                billingPeriodStr = $"{periodStart:dd MMM yyyy} - {periodEnd:dd MMM yyyy}";
+            }
 
             var document = Document.Create(container =>
             {

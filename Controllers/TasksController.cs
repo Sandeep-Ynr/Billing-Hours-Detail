@@ -53,8 +53,8 @@ namespace BillingSoftware.Controllers
             }
 
             var tasks = await query
-                .OrderByDescending(t => t.TaskDate)
-                .ThenByDescending(t => t.CreatedAt)
+                .OrderBy(t => t.TaskDate)
+                .ThenBy(t => t.CreatedAt)
                 .ToListAsync();
 
             // Prepare Dropdown Data
