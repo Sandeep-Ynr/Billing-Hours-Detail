@@ -49,8 +49,8 @@ namespace BillingSoftware.Controllers
                     .Take(5)
                     .ToList(),
                 RecentTasks = tasks
-                    .OrderByDescending(t => t.TaskDate)
-                    .ThenByDescending(t => t.CreatedAt)
+                    .OrderBy(t => t.TaskDate)
+                    .ThenBy(t => t.CreatedAt)
                     .Take(10)
                     .Select(t => new RecentTaskViewModel
                     {

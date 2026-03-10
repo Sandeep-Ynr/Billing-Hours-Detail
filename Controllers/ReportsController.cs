@@ -119,7 +119,7 @@ namespace BillingSoftware.Controllers
             }
 
             var tasks = await query
-                .OrderByDescending(t => t.TaskDate)
+                .OrderBy(t => t.TaskDate)
                 .ToListAsync();
 
             ViewBag.Client = client;
@@ -208,7 +208,7 @@ namespace BillingSoftware.Controllers
                 if (client == null)
                     return NotFound();
 
-                var pdfData = await _exportService.ExportClientDetailToPdfAsync(id, startDate, endDate, invoiceNumber, customBillingPeriod);
+                var pdfData = await _exportService.ExportClientDetailToPdfAsync(id, startDate, endDate, null, null, invoiceNumber, customBillingPeriod);
                 var fileName = $"{client.Name.Replace(" ", "_")}_Report_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
                 return File(pdfData, "application/pdf", fileName);
             }

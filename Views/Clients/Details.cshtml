@@ -231,7 +231,7 @@
                             </thead>
                             <tbody>
                                 @{ int i = 1; }
-                                @foreach (var task in Model.Tasks.OrderByDescending(t => t.TaskDate))
+                                @foreach (var task in Model.Tasks.OrderBy(t => t.TaskDate).ThenBy(t => t.Id))
                                 {
                                     <tr>
                                         <td>@(i++)</td>
@@ -298,6 +298,14 @@
                 @if (ViewBag.EndDate != null)
                 {
                     <input type="hidden" name="endDate" value="@(((DateTime)ViewBag.EndDate).ToString("yyyy-MM-dd"))" />
+                }
+                @if (ViewBag.SelectedYear != null)
+                {
+                    <input type="hidden" name="year" value="@ViewBag.SelectedYear" />
+                }
+                @if (ViewBag.SelectedMonth != null)
+                {
+                    <input type="hidden" name="month" value="@ViewBag.SelectedMonth" />
                 }
                 
                 <div class="modal-header">
