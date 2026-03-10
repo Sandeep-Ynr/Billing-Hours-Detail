@@ -13,7 +13,7 @@ namespace BillingSoftware.Services
         Task<byte[]> ExportClientsToExcelAsync(int? clientId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportClientsToPdfAsync(int? clientId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportClientDetailToExcelAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null);
-        Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, string? customInvoiceNumber = null, string? customBillingPeriod = null);
     }
 
     public class ExportService : IExportService
@@ -365,11 +365,32 @@ namespace BillingSoftware.Services
             return stream.ToArray();
         }
 
-        public async Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null)
+        public async Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, string? customInvoiceNumber = null, string? customBillingPeriod = null)
         {
             var client = await _context.Clients.FindAsync(clientId);
             if (client == null)
                 throw new ArgumentException("Client not found");
+
+            string invoiceNumberStr = $"INV-{DateTime.Now:MMddyy}";
+            
+            if (!string.IsNullOrWhiteSpace(customInvoiceNumber))
+            {
+                invoiceNumberStr = customInvoiceNumber;
+            }
+            else
+            {
+                var invoiceSetting = await _context.Settings.FirstOrDefaultAsync(s => s.Key == "LastInvoiceNumber");
+                if (invoiceSetting != null)
+                {
+                    if (int.TryParse(invoiceSetting.Value, out int currentInvoiceNumber))
+                    {
+                        currentInvoiceNumber++;
+                        invoiceSetting.Value = currentInvoiceNumber.ToString();
+                        await _context.SaveChangesAsync();
+                        invoiceNumberStr = $"INV-{currentInvoiceNumber:000}";
+                    }
+                }
+            }
 
             var query = _context.Tasks.Where(t => t.ClientId == clientId);
 
@@ -386,7 +407,9 @@ namespace BillingSoftware.Services
             var periodStart = startDate ?? minDate;
             var periodEnd = endDate ?? maxDate;
             
-            var billingPeriodStr = $"{periodStart:dd MMM yyyy} - {periodEnd:dd MMM yyyy}";
+            var billingPeriodStr = !string.IsNullOrWhiteSpace(customBillingPeriod) 
+                ? customBillingPeriod 
+                : $"{periodStart:dd MMM yyyy} - {periodEnd:dd MMM yyyy}";
 
             var document = Document.Create(container =>
             {
@@ -407,7 +430,7 @@ namespace BillingSoftware.Services
 
                                 row.RelativeItem().Column(c =>
                                 {
-                                    c.Item().Text($"Invoice Number: INV-{DateTime.Now:MMddyy}");
+                                    c.Item().Text($"Invoice Number: {invoiceNumberStr}");
                                     c.Item().Text($"Invoice Date: {DateTime.Now:dd MMMM yyyy}");
                                     c.Item().Text($"Billing Period: {billingPeriodStr}");
                                     c.Item().Text($"Hourly Rate: {client.Currency} {client.HourlyRate:0.00}");

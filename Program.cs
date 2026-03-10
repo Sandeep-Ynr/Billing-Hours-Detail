@@ -39,6 +39,26 @@ using (var scope = app.Services.CreateScope())
         context.Database.ExecuteSqlRaw("ALTER TABLE Clients ADD COLUMN ConversionRate TEXT DEFAULT '1'"); // SQLite stores decimal as TEXT/REAL often, explicit type helps.
     }
     catch { /* Columns likely exist */ }
+
+    // Create Settings table dynamically
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS Settings (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Key TEXT NOT NULL,
+                Value TEXT NOT NULL
+            );
+        ");
+        
+        var hasSetting = context.Settings.Any(s => s.Key == "LastInvoiceNumber");
+        if (!hasSetting)
+        {
+            context.Settings.Add(new BillingSoftware.Models.Setting { Key = "LastInvoiceNumber", Value = "0" });
+            context.SaveChanges();
+        }
+    }
+    catch { /* Ignore */ }
 }
 
 // Configure the HTTP request pipeline.
