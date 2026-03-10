@@ -30,10 +30,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item" asp-action="ExportClientDetailsToPdf"
-                       asp-route-id="@client?.Id"
-                       asp-route-startDate="@startDate?.ToString("yyyy-MM-dd")"
-                       asp-route-endDate="@endDate?.ToString("yyyy-MM-dd")">
+                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportPdfModal">
                         <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Export to PDF
                     </a>
                 </li>
@@ -165,3 +162,46 @@ else
         </div>
     </div>
 }
+
+<!-- Export PDF Modal -->
+<div class="modal fade" id="exportPdfModal" tabindex="-1" aria-labelledby="exportPdfModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="ExportClientDetailsToPdf" method="get">
+                <input type="hidden" name="id" value="@client?.Id" />
+                
+                @if (startDate != null)
+                {
+                    <input type="hidden" name="startDate" value="@startDate?.ToString("yyyy-MM-dd")" />
+                }
+                @if (endDate != null)
+                {
+                    <input type="hidden" name="endDate" value="@endDate?.ToString("yyyy-MM-dd")" />
+                }
+                
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportPdfModalLabel">Export to PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="invoiceNumber" class="form-label">Custom Invoice Number (Optional)</label>
+                        <input type="text" class="form-control" id="invoiceNumber" name="invoiceNumber" placeholder="e.g. INV-999">
+                        <div class="form-text">Leave blank to use the auto-generating incrementing invoice number.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customBillingPeriod" class="form-label">Custom Billing Period (Optional)</label>
+                        <input type="text" class="form-control" id="customBillingPeriod" name="customBillingPeriod" placeholder="e.g. 18 Jan 2026 – 8 Feb 2026">
+                        <div class="form-text">Leave blank to default to the selected date range.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Generate PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

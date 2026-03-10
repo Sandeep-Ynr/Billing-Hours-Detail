@@ -12,6 +12,7 @@ namespace BillingSoftware.Data
 
         public DbSet<Client> Clients { get; set; }
         public DbSet<WorkTask> Tasks { get; set; }
+        public DbSet<Setting> Settings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +48,10 @@ namespace BillingSoftware.Data
                 new Client { Id = 1, Name = "Tech Solutions Inc.", HourlyRate = 75.00m, Email = "contact@techsolutions.com", Description = "Software development client", IsActive = true, CreatedAt = DateTime.Now },
                 new Client { Id = 2, Name = "Digital Marketing Pro", HourlyRate = 50.00m, Email = "info@digitalmarketingpro.com", Description = "Marketing automation project", IsActive = true, CreatedAt = DateTime.Now },
                 new Client { Id = 3, Name = "StartUp Ventures", HourlyRate = 100.00m, Email = "team@startupventures.io", Description = "MVP development", IsActive = true, CreatedAt = DateTime.Now }
+            );
+
+            modelBuilder.Entity<Setting>().HasData(
+                new Setting { Id = 1, Key = "LastInvoiceNumber", Value = "0" }
             );
         }
     }
