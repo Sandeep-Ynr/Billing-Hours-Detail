@@ -102,7 +102,7 @@ namespace BillingSoftware.Controllers
         // POST: Clients/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,HourlyRate,Currency,ConversionRate,Description,Email,Phone,IsActive")] Client client)
+        public async Task<IActionResult> Create([Bind("Name,HourlyRate,Currency,ConversionRate,Description,Email,Phone,PaymentMethods,IsActive")] Client client)
         {
             // If INR is selected, the ConversionRate input is hidden and might be submitted as empty/invalid.
             // Since conversion rate is not applicable for INR (it's 1:1), we force it to 1 and clear validation.
@@ -149,7 +149,7 @@ namespace BillingSoftware.Controllers
         // POST: Clients/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HourlyRate,Currency,ConversionRate,Description,Email,Phone,IsActive,CreatedAt")] Client client)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HourlyRate,Currency,ConversionRate,Description,Email,Phone,PaymentMethods,IsActive,CreatedAt")] Client client)
         {
             if (id != client.Id)
             {

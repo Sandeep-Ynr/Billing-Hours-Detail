@@ -32,6 +32,10 @@ namespace BillingSoftware.Models
         [Phone(ErrorMessage = "Invalid phone number")]
         public string? Phone { get; set; }
 
+        [StringLength(1000)]
+        [Display(Name = "Payment Methods")]
+        public string? PaymentMethods { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public bool IsActive { get; set; } = true;

@@ -194,6 +194,11 @@ else
                         <input type="text" class="form-control" id="customBillingPeriod" name="customBillingPeriod" placeholder="e.g. 18 Jan 2026 – 8 Feb 2026">
                         <div class="form-text">Leave blank to default to the selected date range.</div>
                     </div>
+                    <div class="mb-3">
+                        <label for="paymentMethods" class="form-label">Payment Methods (Optional)</label>
+                        <textarea class="form-control" id="paymentMethods" name="paymentMethods" rows="3" placeholder="Enter payment details (Bank, UPI, etc.)">@client?.PaymentMethods</textarea>
+                        <div class="form-text">If provided, this will be shown on the invoice.</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
