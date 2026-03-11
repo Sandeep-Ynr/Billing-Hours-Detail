@@ -200,7 +200,7 @@ namespace BillingSoftware.Controllers
         }
 
         // GET: Reports/ExportClientDetailsToPdf
-        public async Task<IActionResult> ExportClientDetailsToPdf(int id, DateTime? startDate, DateTime? endDate, string? invoiceNumber, string? customBillingPeriod)
+        public async Task<IActionResult> ExportClientDetailsToPdf(int id, DateTime? startDate, DateTime? endDate, string? invoiceNumber, string? customBillingPeriod, string? paymentMethods)
         {
             try
             {
@@ -208,7 +208,7 @@ namespace BillingSoftware.Controllers
                 if (client == null)
                     return NotFound();
 
-                var pdfData = await _exportService.ExportClientDetailToPdfAsync(id, startDate, endDate, null, null, invoiceNumber, customBillingPeriod);
+                var pdfData = await _exportService.ExportClientDetailToPdfAsync(id, startDate, endDate, null, null, invoiceNumber, customBillingPeriod, paymentMethods);
                 var fileName = $"{client.Name.Replace(" ", "_")}_Report_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
                 return File(pdfData, "application/pdf", fileName);
             }

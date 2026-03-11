@@ -67,9 +67,15 @@
                         
                         <div class="col-12">
                             <label asp-for="Description" class="form-label">Description</label>
-                            <textarea asp-for="Description" class="form-control" rows="3" 
-                                placeholder="Brief description of the client or project..."></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label asp-for="PaymentMethods" class="form-label">Payment Methods</label>
+                            <textarea asp-for="PaymentMethods" class="form-control" rows="3" 
+                                placeholder="Enter payment details (Bank, UPI, etc.)"></textarea>
+                            <span asp-validation-for="PaymentMethods" class="text-danger"></span>
                         </div>
                         
                         <div class="col-12">

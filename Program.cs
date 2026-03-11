@@ -40,6 +40,13 @@ using (var scope = app.Services.CreateScope())
     }
     catch { /* Columns likely exist */ }
 
+    // Migration to add PaymentMethods column
+    try
+    {
+        context.Database.ExecuteSqlRaw("ALTER TABLE Clients ADD COLUMN PaymentMethods TEXT");
+    }
+    catch { /* Column likely exists */ }
+
     // Create Settings table dynamically
     try
     {

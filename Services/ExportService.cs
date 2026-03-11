@@ -13,7 +13,7 @@ namespace BillingSoftware.Services
         Task<byte[]> ExportClientsToExcelAsync(int? clientId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportClientsToPdfAsync(int? clientId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportClientDetailToExcelAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null);
-        Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, int? year = null, int? month = null, string? customInvoiceNumber = null, string? customBillingPeriod = null);
+        Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, int? year = null, int? month = null, string? customInvoiceNumber = null, string? customBillingPeriod = null, string? paymentMethods = null);
     }
 
     public class ExportService : IExportService
@@ -365,11 +365,17 @@ namespace BillingSoftware.Services
             return stream.ToArray();
         }
 
-        public async Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, int? year = null, int? month = null, string? customInvoiceNumber = null, string? customBillingPeriod = null)
+        public async Task<byte[]> ExportClientDetailToPdfAsync(int clientId, DateTime? startDate = null, DateTime? endDate = null, int? year = null, int? month = null, string? customInvoiceNumber = null, string? customBillingPeriod = null, string? paymentMethods = null)
         {
             var client = await _context.Clients.FindAsync(clientId);
             if (client == null)
                 throw new ArgumentException("Client not found");
+
+            // Fallback to client's saved payment methods if custom one is not provided
+            if (string.IsNullOrWhiteSpace(paymentMethods))
+            {
+                paymentMethods = client.PaymentMethods;
+            }
 
             string invoiceNumberStr = $"INV-{DateTime.Now:MMddyy}";
             
@@ -501,6 +507,12 @@ namespace BillingSoftware.Services
                             
                         col.Item().PaddingTop(5).Text($"Total Amount: {client.Currency} {totalAmount:0.00}")
                             .Bold().FontSize(10);
+                            
+                        if (!string.IsNullOrWhiteSpace(paymentMethods))
+                        {
+                            col.Item().PaddingTop(15).Text("Payment Methods").Bold();
+                            col.Item().Text(paymentMethods).FontSize(9);
+                        }
                             
                         col.Item().PaddingTop(15).Text("Notes").Bold();
                         col.Item().Text("Thank you for the opportunity to work on this project.");
