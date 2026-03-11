@@ -493,9 +493,13 @@ namespace BillingSoftware.Services
                             }
                         });
                         
+                        var totalHours = tasks.Sum(t => t.HoursWorked);
                         var totalAmount = tasks.Sum(t => t.HoursWorked * client.HourlyRate);
                         
-                        col.Item().PaddingTop(15).Text($"Total Amount: {client.Currency} {totalAmount:0.00}")
+                        col.Item().PaddingTop(15).Text($"Total Hours: {totalHours:0.00}")
+                            .Bold().FontSize(10);
+                            
+                        col.Item().PaddingTop(5).Text($"Total Amount: {client.Currency} {totalAmount:0.00}")
                             .Bold().FontSize(10);
                             
                         col.Item().PaddingTop(15).Text("Notes").Bold();
